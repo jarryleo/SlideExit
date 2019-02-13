@@ -15,7 +15,6 @@ import android.support.annotation.Nullable;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.ViewDragHelper;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -160,7 +159,7 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
         int left = mContentView.getLeft();
         if (left > 0) {
             //绘制背景图
-            if (mBackViewBitmap != null) {
+            if (mBackViewBitmap != null && !mBackViewBitmap.isRecycled()) {
                 int width = mContentView.getWidth();
                 int i = (width - left) / 4;
                 Rect src = new Rect(i, 0, i + left, mBackViewBitmap.getHeight());
@@ -289,8 +288,12 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
     }
 
     private Bitmap getViewBitmap(@NonNull View v) {
-        v.setDrawingCacheEnabled(true);
-        v.buildDrawingCache();
-        return v.getDrawingCache();
+        if (mBackViewBitmap != null) {
+            mBackViewBitmap.recycle();
+        }
+        Bitmap bmp = Bitmap.createBitmap(v.getWidth(), v.getHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bmp);
+        v.draw(canvas);
+        return bmp;
     }
 }
