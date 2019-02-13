@@ -227,12 +227,18 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
      */
     private void resetViewToSecondActivity() {
         if (mActivities.size() == 0) {
+            if (mBackViewBitmap != null) {
+                mBackViewBitmap.recycle();
+            }
             return;
         }
         this.removeAllViews();
         Activity lastActivity = mActivities.getLast();
         ViewGroup decorView = getDecorView(lastActivity);
         if (mActivities.size() < 2) {
+            if (mBackViewBitmap != null) {
+                mBackViewBitmap.recycle();
+            }
             return;
         }
         //如果底下有多个页面则把倒数第二个页面添加到它的背景
