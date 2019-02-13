@@ -16,6 +16,7 @@
         android:text="Hello World!"/>
 
     <cn.leo.slideexit.MyViewPager
+        android:background="@color/colorAccent"
         android:id="@+id/vp"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>

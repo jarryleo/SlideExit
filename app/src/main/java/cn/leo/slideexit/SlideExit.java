@@ -3,23 +3,16 @@ package cn.leo.slideexit;
 import android.animation.IntEvaluator;
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
-import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.PixelFormat;
-import android.graphics.drawable.ColorDrawable;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.ViewDragHelper;
 import android.util.AttributeSet;
-import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.view.WindowManager;
 import android.widget.FrameLayout;
 
 /**
@@ -27,7 +20,7 @@ import android.widget.FrameLayout;
  */
 
 public class SlideExit extends FrameLayout {
-    //支持往边滑动关闭Activity
+    //支持往四边滑动关闭Activity
 
     public static final int SLIDE_LEFT_EXIT = 1 << 0;
     public static final int SLIDE_RIGHT_EXIT = 1 << 1;
@@ -150,7 +143,7 @@ public class SlideExit extends FrameLayout {
             //刷新显示
             ViewCompat.postInvalidateOnAnimation(this);
         } else {
-            //滑动结束,关闭Activty
+            //滑动结束,关闭Activity
             if (Math.abs(mContentView.getLeft()) == getMeasuredWidth()
                     || Math.abs(mContentView.getTop()) == getMeasuredHeight()) {
                 mActivity.finish();
@@ -209,9 +202,9 @@ public class SlideExit extends FrameLayout {
         }
     }
 
-    public static void bind(Activity activity,int slide_side) {
+    public static void bind(Activity activity, int slide_side) {
         //创建本类对象并绑定Activity
-        new SlideExit(activity).attach(activity,slide_side);
+        new SlideExit(activity).attach(activity, slide_side);
     }
 
 
