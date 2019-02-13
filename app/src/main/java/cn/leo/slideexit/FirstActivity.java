@@ -26,7 +26,6 @@ public class FirstActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
-        Toast.makeText(this, "", Toast.LENGTH_SHORT).show();
     }
 
     public void click(View view) {

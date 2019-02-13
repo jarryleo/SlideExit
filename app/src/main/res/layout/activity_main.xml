@@ -11,12 +11,12 @@
     tools:context="cn.leo.slideexit.SecondActivity">
 
     <TextView
+        android:id="@+id/tvTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Hello World!"/>
 
     <cn.leo.slideexit.MyViewPager
-        android:background="@color/colorAccent"
         android:id="@+id/vp"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>

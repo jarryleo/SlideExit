@@ -28,8 +28,9 @@ public class MyVpAdapter extends PagerAdapter {
     public Object instantiateItem(ViewGroup container, int position) {
         TextView tv = new TextView(container.getContext());
         tv.setText(title[position]);
-        tv.setTextColor(Color.RED);
+        tv.setTextColor(Color.BLACK);
         tv.setGravity(Gravity.CENTER);
+        tv.setBackgroundColor(Color.YELLOW);
         container.addView(tv);
         return tv;
     }

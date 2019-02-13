@@ -4,18 +4,15 @@ import android.animation.IntEvaluator;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.ViewDragHelper;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,7 +25,7 @@ import java.util.LinkedList;
  * @author : Jarry Leo
  * @date : 2019/2/13 9:51
  */
-public class SwipeBack extends FrameLayout implements Application.ActivityLifecycleCallbacks {
+public class SwipeBack2 extends FrameLayout implements Application.ActivityLifecycleCallbacks {
     private LinkedList<Activity> mActivities = new LinkedList<>();
     /**
      * 当前展示的activity的内容页面
@@ -37,36 +34,33 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
     /**
      * 底下activity的view作为当前activity的背景
      */
-    private Bitmap mBackViewBitmap;
+    private View mBackView;
     private Paint mPaint;
-    private Paint mBitmapPaint;
     private ViewDragHelper mDragHelper;
     private IntEvaluator mEvaluator;
 
-    private SwipeBack(@NonNull Context context) {
+    private SwipeBack2(@NonNull Context context) {
         this(context, null);
     }
 
-    private SwipeBack(@NonNull Context context, @Nullable AttributeSet attrs) {
+    private SwipeBack2(@NonNull Context context, @Nullable AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
-    private SwipeBack(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    private SwipeBack2(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         initView();
     }
 
     private void initView() {
         mPaint = new Paint();
-        mBitmapPaint = new Paint();
         mEvaluator = new IntEvaluator();
         mDragHelper = ViewDragHelper.create(this, mCallback);
-        setBackgroundColor(Color.WHITE);
     }
 
 
     public static void init(Application application) {
-        SwipeBack swipeBack = new SwipeBack(application);
+        SwipeBack2 swipeBack = new SwipeBack2(application);
         application.registerActivityLifecycleCallbacks(swipeBack);
     }
 
@@ -74,8 +68,7 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
 
         @Override
         public boolean tryCaptureView(View child, int pointerId) {
-            return child == mContentView &&
-                    mActivities.size() > 1;
+            return child == mContentView && mActivities.size() > 1;
         }
 
         @Override
@@ -95,7 +88,7 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
             }
 
             //刷新动画
-            ViewCompat.postInvalidateOnAnimation(SwipeBack.this);
+            ViewCompat.postInvalidateOnAnimation(SwipeBack2.this);
         }
 
 
@@ -110,7 +103,7 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
         @Override
         public void onViewPositionChanged(View changedView, int left, int top, int dx, int dy) {
             //绘制阴影刷新显示
-            ViewCompat.postInvalidateOnAnimation(SwipeBack.this);
+            ViewCompat.postInvalidateOnAnimation(SwipeBack2.this);
         }
 
 
@@ -128,17 +121,21 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
     @Override
     public void computeScroll() {
         //滑动动画处理
+        int left = mContentView.getLeft();
         if (mDragHelper.continueSettling(true)) {
             //刷新显示
             ViewCompat.postInvalidateOnAnimation(this);
         } else {
             //滑动结束,关闭Activity
-            int left = mContentView.getLeft();
             if (Math.abs(left) == getMeasuredWidth()) {
                 mActivities.getLast().finish();
             }
         }
-
+        if (mBackView != null) {
+            int width = mBackView.getWidth();
+            int i = (width - left) / 4;
+            mBackView.setLeft(-i);
+        }
     }
 
     @Override
@@ -157,32 +154,20 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
     @Override
     protected void dispatchDraw(Canvas canvas) {
         super.dispatchDraw(canvas);
-        int left = mContentView.getLeft();
-        if (left > 0) {
-            //绘制背景图
-            if (mBackViewBitmap != null) {
-                int width = mContentView.getWidth();
-                int i = (width - left) / 4;
-                Rect src = new Rect(i, 0, i + left, mBackViewBitmap.getHeight());
-                Rect dst = new Rect(0, 0, left, mBackViewBitmap.getHeight());
-                canvas.drawBitmap(mBackViewBitmap, src, dst, mBitmapPaint);
-            }
-            //绘制阴影
-            Integer evaluate = mEvaluator.evaluate(
-                    mContentView.getLeft() * 1.0f / mContentView.getMeasuredWidth(),
+        if (mContentView.getLeft() > 0) {
+            Integer evaluate = mEvaluator.evaluate(mContentView.getLeft() * 1.0f / mContentView.getMeasuredWidth(),
                     0, 100);
             mPaint.setColor(Color.argb(100 - evaluate, 0, 0, 0));
             //左边阴影
-            canvas.drawRect(0, 0, mContentView.getLeft(), getMeasuredHeight(), mPaint);
+            canvas.drawRect(0, 0, mContentView.getLeft(),
+                    getMeasuredHeight(), mPaint);
         }
-
     }
 
     @Override
     public void onActivityCreated(Activity activity, Bundle bundle) {
         mActivities.addLast(activity);
         getViewToNewActivity();
-        activity.overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
     }
 
     @Override
@@ -196,7 +181,11 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
 
     @Override
     public void onActivityPaused(Activity activity) {
-        activity.overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
+        if (mActivities.size() <= 1) {
+            activity.overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+        } else {
+            activity.overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
+        }
     }
 
     @Override
@@ -234,14 +223,15 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
         Activity lastActivity = mActivities.getLast();
         ViewGroup decorView = getDecorView(lastActivity);
         if (mActivities.size() < 2) {
+            //如果底下只剩一个页面，则把它之前的页面还给它
+            decorView.addView(mBackView);
             return;
         }
         //如果底下有多个页面则把倒数第二个页面添加到它的背景
         Activity secondLastActivity = mActivities.get(mActivities.size() - 2);
-        mContentView = getContentView(lastActivity);
-        View backView = getContentView(secondLastActivity);
-        mBackViewBitmap = getViewBitmap(backView);
-        decorView.removeAllViews();
+        mContentView = mBackView;
+        mBackView = getContentView(secondLastActivity);
+        this.addView(mBackView);
         this.addView(mContentView);
         //把本容器添加到Activity的父容器
         decorView.addView(this);
@@ -256,22 +246,14 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
         }
         Activity lastActivity = mActivities.getLast();
         Activity secondLastActivity = mActivities.get(mActivities.size() - 2);
-        //处理之前的activity
-        this.removeAllViews();
-        if (mContentView != null) {
-            ViewGroup preDecorView = getDecorView(secondLastActivity);
-            preDecorView.removeAllViews();
-            preDecorView.addView(mContentView);
-        }
-        //处理现在的activity
         ViewGroup decorView = getDecorView(lastActivity);
         if (decorView.getChildCount() > 0) {
             //拿到Activity的contentView
             mContentView = getContentView(lastActivity);
-            View backView = getContentView(secondLastActivity);
-            mBackViewBitmap = getViewBitmap(backView);
+            mBackView = getContentView(secondLastActivity);
             //把contentView添加到本容器
-            decorView.removeAllViews();
+            this.removeAllViews();
+            this.addView(mBackView);
             this.addView(mContentView);
             //把本容器添加到Activity的父容器
             decorView.addView(this);
@@ -285,12 +267,8 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
 
     private View getContentView(Activity activity) {
         ViewGroup decorView = getDecorView(activity);
-        return decorView.getChildAt(0);
-    }
-
-    private Bitmap getViewBitmap(@NonNull View v) {
-        v.setDrawingCacheEnabled(true);
-        v.buildDrawingCache();
-        return v.getDrawingCache();
+        View contentView = decorView.getChildAt(0);
+        decorView.removeAllViews();
+        return contentView;
     }
 }
