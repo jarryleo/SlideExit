@@ -27,5 +27,5 @@ dependencies {
     implementation 'com.android.support:design:26.1.0'
     testImplementation 'junit:junit:4.12'
     implementation project(':swipe_back_lib')
-//    implementation 'com.github.jarryleo:SlideExit:v1.1'
+//    implementation 'com.github.jarryleo:SlideExit:v1.2'
 }

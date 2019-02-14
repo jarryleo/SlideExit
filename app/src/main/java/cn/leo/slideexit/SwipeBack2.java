@@ -182,9 +182,9 @@ public class SwipeBack2 extends FrameLayout implements Application.ActivityLifec
     @Override
     public void onActivityPaused(Activity activity) {
         if (mActivities.size() <= 1) {
-            activity.overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+            activity.overridePendingTransition(R.anim.swipe_back_in_right, R.anim.swipe_back_out_left);
         } else {
-            activity.overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
+            activity.overridePendingTransition(R.anim.swipe_back_in_left, R.anim.swipe_back_out_right);
         }
     }
 

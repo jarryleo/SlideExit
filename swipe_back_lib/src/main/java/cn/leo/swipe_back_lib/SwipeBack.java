@@ -178,6 +178,8 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
                 Rect src = new Rect(i, 0, i + left, mBackViewBitmap.getHeight());
                 Rect dst = new Rect(0, 0, left, mBackViewBitmap.getHeight());
                 canvas.drawBitmap(mBackViewBitmap, src, dst, mBitmapPaint);
+            } else {
+                getBackViewBitmap();
             }
             //绘制阴影
             Integer evaluate = mEvaluator.evaluate(
@@ -197,7 +199,7 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
         if (!checkIgnore(activity)) {
             getViewToNewActivity();
         }
-        activity.overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+        activity.overridePendingTransition(R.anim.swipe_back_in_right, R.anim.swipe_back_out_left);
     }
 
     @Override
@@ -212,10 +214,10 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
     @Override
     public void onActivityPaused(Activity activity) {
         if (mIsSwipeBack) {
-            activity.overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
+            activity.overridePendingTransition(R.anim.swipe_back_in_left, R.anim.swipe_back_out_right);
             mIsSwipeBack = false;
         } else {
-            activity.overridePendingTransition(R.anim.slide_in_left_normal, R.anim.slide_out_right_normal);
+            activity.overridePendingTransition(R.anim.swipe_back_in_left_normal, R.anim.swipe_back_out_right_normal);
         }
     }
 

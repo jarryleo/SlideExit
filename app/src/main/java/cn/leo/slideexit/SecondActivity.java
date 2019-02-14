@@ -14,7 +14,6 @@ public class SecondActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        //SlideExit.bind(this, SlideExit.SLIDE_RIGHT_EXIT);
         init();
     }
 
