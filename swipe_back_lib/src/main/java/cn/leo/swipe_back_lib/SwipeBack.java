@@ -12,11 +12,9 @@ import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.ViewDragHelper;
-import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -49,17 +47,14 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
     private ViewDragHelper mDragHelper;
     private IntEvaluator mEvaluator;
     private boolean mIsSwipeBack;
+    /**
+     * 是否边缘滑动
+     */
+    private boolean mEdge;
 
-    private SwipeBack(@NonNull Context context) {
-        this(context, null);
-    }
-
-    private SwipeBack(@NonNull Context context, @Nullable AttributeSet attrs) {
-        this(context, attrs, 0);
-    }
-
-    private SwipeBack(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
-        super(context, attrs, defStyleAttr);
+    private SwipeBack(@NonNull Context context, boolean edge) {
+        super(context);
+        mEdge = edge;
         initView();
     }
 
@@ -67,13 +62,16 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
         mPaint = new Paint();
         mBitmapPaint = new Paint();
         mEvaluator = new IntEvaluator();
-        mDragHelper = ViewDragHelper.create(this, mCallback);
+        mDragHelper = ViewDragHelper.create(this, 1.0f, mCallback);
+        if (mEdge) {
+            mDragHelper.setEdgeTrackingEnabled(ViewDragHelper.EDGE_LEFT);
+        }
         setBackgroundColor(Color.WHITE);
     }
 
 
-    public static void init(Application application) {
-        SwipeBack swipeBack = new SwipeBack(application);
+    public static void init(Application application, boolean edge) {
+        SwipeBack swipeBack = new SwipeBack(application, edge);
         application.registerActivityLifecycleCallbacks(swipeBack);
     }
 
@@ -81,6 +79,9 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
 
         @Override
         public boolean tryCaptureView(View child, int pointerId) {
+            if (mEdge) {
+                return false;
+            }
             boolean capture = child == mContentView && mActivities.size() > 1;
             if (capture && mBackViewBitmap == null) {
                 getBackViewBitmap();
@@ -92,6 +93,9 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
         public void onViewReleased(View releasedChild, float xvel, float yvel) {
             //滑动边界1/3即关闭Activity
             int xDistance = getMeasuredWidth() / 3;
+            if (mContentView == null) {
+                return;
+            }
             //左右超过边界处理
             if (mContentView.getLeft() != 0) {
                 if (mContentView.getLeft() < -xDistance) {
@@ -125,12 +129,23 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
 
 
         @Override
+        public void onEdgeDragStarted(int edgeFlags, int pointerId) {
+            mDragHelper.captureChildView(mContentView, pointerId);
+        }
+
+        @Override
         public int getViewHorizontalDragRange(View child) {
+            if (mEdge) {
+                return 0;
+            }
             return 100;
         }
 
         @Override
         public int getViewVerticalDragRange(View child) {
+            if (mEdge) {
+                return 0;
+            }
             return 100;
         }
     };
@@ -233,7 +248,7 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
     @Override
     public void onActivityDestroyed(Activity activity) {
         boolean isTop = activity == mActivities.getLast();
-        Activity secondLastActivity = mActivities.get(mActivities.size() - 2);
+        Activity secondLastActivity = getSecondActivity();
         boolean isSecond = activity == secondLastActivity;
         mActivities.remove(activity);
         if (isTop) {
@@ -275,6 +290,13 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
         decorView.addView(this);
     }
 
+    private Activity getSecondActivity() {
+        if (mActivities.size() < 2) {
+            return null;
+        }
+        return mActivities.get(mActivities.size() - 2);
+    }
+
     /**
      * 把底部页面的布局添加到当前展示的activity的底下；
      */
@@ -283,10 +305,10 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
             return;
         }
         Activity lastActivity = mActivities.getLast();
-        Activity secondLastActivity = mActivities.get(mActivities.size() - 2);
+        Activity secondLastActivity = getSecondActivity();
         //处理之前的activity
         this.removeAllViews();
-        if (mContentView != null) {
+        if (mContentView != null && secondLastActivity != null) {
             ViewGroup preDecorView = getDecorView(secondLastActivity);
             preDecorView.removeAllViews();
             preDecorView.addView(mContentView);
@@ -315,10 +337,10 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
     }
 
     private void getBackViewBitmap() {
-        if (mActivities.size() < 2) {
+        Activity activity = getSecondActivity();
+        if (activity == null) {
             return;
         }
-        Activity activity = mActivities.get(mActivities.size() - 2);
         View v = getContentView(activity);
         recycleBitmap();
         Bitmap bmp = Bitmap.createBitmap(v.getWidth(), v.getHeight(), Bitmap.Config.ARGB_4444);
@@ -342,6 +364,9 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
     }
 
     private boolean checkIgnore(Activity activity) {
+        if (activity == null) {
+            return false;
+        }
         Class<? extends Activity> a = activity.getClass();
         return a.isAnnotationPresent(IgnoreSwipeBack.class);
     }

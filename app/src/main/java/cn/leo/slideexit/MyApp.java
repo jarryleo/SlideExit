@@ -12,6 +12,6 @@ public class MyApp extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        SwipeBack.init(this);
+        SwipeBack.init(this, false);
     }
 }
