@@ -87,8 +87,8 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
 
         @Override
         public void onViewReleased(View releasedChild, float xvel, float yvel) {
-            //滑动边界1/4即关闭Activity
-            float xDistance = getMeasuredWidth() / 3;
+            //滑动边界1/3即关闭Activity
+            int xDistance = getMeasuredWidth() / 3;
             //左右超过边界处理
             if (mContentView.getLeft() != 0) {
                 if (mContentView.getLeft() < -xDistance) {
