@@ -81,8 +81,11 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
 
         @Override
         public boolean tryCaptureView(View child, int pointerId) {
-            return child == mContentView &&
-                    mActivities.size() > 1;
+            boolean capture = child == mContentView && mActivities.size() > 1;
+            if (capture && mBackViewBitmap == null) {
+                getBackViewBitmap();
+            }
+            return capture;
         }
 
         @Override
@@ -190,6 +193,7 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
     @Override
     public void onActivityCreated(Activity activity, Bundle bundle) {
         mActivities.addLast(activity);
+        recycleBitmap();
         if (!checkIgnore(activity)) {
             getViewToNewActivity();
         }
@@ -233,6 +237,7 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
         if (isTop) {
             //从销毁的页面移除自身
             mContentView = null;
+            recycleBitmap();
             ViewGroup decorView = getDecorView(activity);
             decorView.removeAllViews();
             if (checkIgnore(secondLastActivity)) {
@@ -241,8 +246,7 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
             //处理底下漏出的新页面
             resetViewToSecondActivity();
         } else if (isSecond) {
-            View backView = getContentView(secondLastActivity);
-            mBackViewBitmap = getViewBitmap(backView);
+            recycleBitmap();
         }
     }
 
@@ -262,11 +266,7 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
             recycleBitmap();
             return;
         }
-        //如果底下有多个页面则把倒数第二个页面添加到它的背景
-        Activity secondLastActivity = mActivities.get(mActivities.size() - 2);
         mContentView = getContentView(lastActivity);
-        View backView = getContentView(secondLastActivity);
-        mBackViewBitmap = getViewBitmap(backView);
         decorView.removeAllViews();
         this.addView(mContentView);
         //把本容器添加到Activity的父容器
@@ -294,8 +294,6 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
         if (decorView.getChildCount() > 0) {
             //拿到Activity的contentView
             mContentView = getContentView(lastActivity);
-            View backView = getContentView(secondLastActivity);
-            mBackViewBitmap = getViewBitmap(backView);
             //把contentView添加到本容器
             decorView.removeAllViews();
             this.addView(mContentView);
@@ -314,12 +312,17 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
         return decorView.getChildAt(0);
     }
 
-    private Bitmap getViewBitmap(@NonNull View v) {
+    private void getBackViewBitmap() {
+        if (mActivities.size() < 2) {
+            return;
+        }
+        Activity activity = mActivities.get(mActivities.size() - 2);
+        View v = getContentView(activity);
         recycleBitmap();
         Bitmap bmp = Bitmap.createBitmap(v.getWidth(), v.getHeight(), Bitmap.Config.ARGB_4444);
         Canvas canvas = new Canvas(bmp);
         v.draw(canvas);
-        return bmp;
+        mBackViewBitmap = bmp;
     }
 
     private void recycleBitmap() {
