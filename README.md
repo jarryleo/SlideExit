@@ -4,8 +4,10 @@
 本库不用设置主题，一句代码使用：         
 在application里面初始化即可：
 ```
-SwipeBack.init(this);
+SwipeBack.init(this,false);
 ```
+第二个参数true表示边缘滑动模式，false表示全屏滑动模式；       
+全屏滑动模式下，如果有左右滑动的控件会冲突，请自己解决滑动冲突！
 
 #### 依赖方法：
 1.在项目的全局build文件里面添加仓库：
@@ -21,7 +23,7 @@ allprojects {
 ```
 dependencies {
       ...
-	    implementation 'com.github.jarryleo:SlideExit:v1.3'
+	    implementation 'com.github.jarryleo:SlideExit:v1.5'
 }
 ```
 
