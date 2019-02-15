@@ -6,6 +6,9 @@ import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.view.View;
 
+/**
+ * @author Leo
+ */
 public class SecondActivity extends Activity {
 
     private ViewPager mVp;
@@ -23,7 +26,7 @@ public class SecondActivity extends Activity {
         findViewById(R.id.tvTitle).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(SecondActivity.this, LoginActivity.class));
+                startActivity(new Intent(SecondActivity.this, Main2Activity.class));
             }
         });
 

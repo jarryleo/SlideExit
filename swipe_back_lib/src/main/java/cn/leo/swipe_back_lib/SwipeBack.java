@@ -66,7 +66,6 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
         if (mEdge) {
             mDragHelper.setEdgeTrackingEnabled(ViewDragHelper.EDGE_LEFT);
         }
-        setBackgroundColor(Color.WHITE);
     }
 
 
@@ -198,13 +197,12 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
             }
             //绘制阴影
             Integer evaluate = mEvaluator.evaluate(
-                    mContentView.getLeft() * 1.0f / mContentView.getMeasuredWidth(),
+                    left * 1.0f / mContentView.getMeasuredWidth(),
                     0, 100);
             mPaint.setColor(Color.argb(100 - evaluate, 0, 0, 0));
             //左边阴影
-            canvas.drawRect(0, 0, mContentView.getLeft(), getMeasuredHeight(), mPaint);
+            canvas.drawRect(0, 0, left, getMeasuredHeight(), mPaint);
         }
-
     }
 
     @Override
@@ -224,6 +222,7 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
 
     @Override
     public void onActivityResumed(Activity activity) {
+
     }
 
     @Override
@@ -253,10 +252,11 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
         mActivities.remove(activity);
         if (isTop) {
             //从销毁的页面移除自身
+            this.removeAllViews();
             mContentView = null;
             recycleBitmap();
             ViewGroup decorView = getDecorView(activity);
-            decorView.removeAllViews();
+            decorView.removeView(this);
             if (checkIgnore(secondLastActivity)) {
                 return;
             }
@@ -276,18 +276,18 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
             recycleBitmap();
             return;
         }
-        this.removeAllViews();
-        Activity lastActivity = mActivities.getLast();
-        ViewGroup decorView = getDecorView(lastActivity);
         if (mActivities.size() < 2) {
             recycleBitmap();
             return;
         }
+        //把this添加到新的顶层activity
+        Activity lastActivity = mActivities.getLast();
+        ViewGroup decorView = getDecorView(lastActivity);
         mContentView = getContentView(lastActivity);
-        decorView.removeAllViews();
+        decorView.removeView(mContentView);
         this.addView(mContentView);
         //把本容器添加到Activity的父容器
-        decorView.addView(this);
+        decorView.addView(this, 0);
     }
 
     private Activity getSecondActivity() {
@@ -310,7 +310,7 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
         this.removeAllViews();
         if (mContentView != null && secondLastActivity != null) {
             ViewGroup preDecorView = getDecorView(secondLastActivity);
-            preDecorView.removeAllViews();
+            preDecorView.removeView(this);
             preDecorView.addView(mContentView);
         }
         //处理现在的activity
@@ -319,10 +319,10 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
             //拿到Activity的contentView
             mContentView = getContentView(lastActivity);
             //把contentView添加到本容器
-            decorView.removeAllViews();
+            decorView.removeView(mContentView);
             this.addView(mContentView);
             //把本容器添加到Activity的父容器
-            decorView.addView(this);
+            decorView.addView(this, 0);
         }
     }
 
@@ -341,7 +341,7 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
         if (activity == null) {
             return;
         }
-        View v = getContentView(activity);
+        View v = getDecorView(activity);
         recycleBitmap();
         Bitmap bmp = Bitmap.createBitmap(v.getWidth(), v.getHeight(), Bitmap.Config.ARGB_4444);
         Canvas canvas = new Canvas(bmp);
