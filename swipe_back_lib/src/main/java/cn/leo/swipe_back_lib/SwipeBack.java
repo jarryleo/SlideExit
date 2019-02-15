@@ -20,6 +20,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -333,6 +334,13 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
 
     private View getContentView(Activity activity) {
         ViewGroup decorView = getDecorView(activity);
+        int childCount = decorView.getChildCount();
+        for (int i = 0; i < childCount; i++) {
+            View child = decorView.getChildAt(i);
+            if (child instanceof LinearLayout) {
+                return child;
+            }
+        }
         return decorView.getChildAt(0);
     }
 

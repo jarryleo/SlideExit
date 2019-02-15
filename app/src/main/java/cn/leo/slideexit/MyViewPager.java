@@ -39,6 +39,8 @@ public class MyViewPager extends ViewPager {
                     getParent().requestDisallowInterceptTouchEvent(true);
                 }
                 break;
+            default:
+                break;
         }
         return super.dispatchTouchEvent(ev);
     }
