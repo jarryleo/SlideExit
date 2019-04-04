@@ -23,7 +23,7 @@ allprojects {
 ```
 dependencies {
       ...
-	    implementation 'com.github.jarryleo:SlideExit:v1.6'
+	    implementation 'com.github.jarryleo:SlideExit:v1.7'
 }
 ```
 
