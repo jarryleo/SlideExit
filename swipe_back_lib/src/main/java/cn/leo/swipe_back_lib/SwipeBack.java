@@ -1,20 +1,22 @@
 package cn.leo.swipe_back_lib;
 
-import android.animation.IntEvaluator;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Color;
+import android.graphics.LinearGradient;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.Shader;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.ViewDragHelper;
+import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -44,14 +46,17 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
      */
     private Bitmap mBackViewBitmap;
     private Paint mPaint;
+    private Paint mShadowPaint;
     private Paint mBitmapPaint;
+    private LinearGradient mShader;
     private ViewDragHelper mDragHelper;
-    private IntEvaluator mEvaluator;
     private boolean mIsSwipeBack;
     /**
      * 是否边缘滑动
      */
     private boolean mEdge;
+    private Matrix mLocalM;
+    private float mShadowWidth;
 
     private SwipeBack(@NonNull Context context, boolean edge) {
         super(context);
@@ -61,8 +66,8 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
 
     private void initView() {
         mPaint = new Paint();
+        mShadowPaint = new Paint();
         mBitmapPaint = new Paint();
-        mEvaluator = new IntEvaluator();
         mDragHelper = ViewDragHelper.create(this, 1.0f, mCallback);
         if (mEdge) {
             mDragHelper.setEdgeTrackingEnabled(ViewDragHelper.EDGE_LEFT);
@@ -197,13 +202,24 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
                 getBackViewBitmap();
             }
             //绘制阴影
-            Integer evaluate = mEvaluator.evaluate(
-                    left * 1.0f / mContentView.getMeasuredWidth(),
-                    0, 100);
-            mPaint.setColor(Color.argb(100 - evaluate, 0, 0, 0));
-            //左边阴影
-            canvas.drawRect(0, 0, left, getMeasuredHeight(), mPaint);
+            drawShadow(canvas, left);
         }
+    }
+
+    private void drawShadow(Canvas canvas, int left) {
+        if (mShader == null) {
+            mShadowWidth = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+                    10, getResources().getDisplayMetrics());
+            mLocalM = new Matrix();
+            mShader = new LinearGradient(0, 0, mShadowWidth, 0,
+                    new int[]{0x00000000, 0x20000000, 0x50000000},
+                    new float[]{0, 0.5f, 1},
+                    Shader.TileMode.CLAMP);
+            mShadowPaint.setShader(mShader);
+        }
+        mLocalM.setTranslate(left - mShadowWidth, 0);
+        mShader.setLocalMatrix(mLocalM);
+        canvas.drawRect(left - mShadowWidth, 0, left, getMeasuredHeight(), mShadowPaint);
     }
 
     @Override
