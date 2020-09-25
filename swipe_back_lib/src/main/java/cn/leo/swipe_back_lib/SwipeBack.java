@@ -45,7 +45,6 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
      * 底下activity的view作为当前activity的背景
      */
     private Bitmap mBackViewBitmap;
-    private Paint mPaint;
     private Paint mShadowPaint;
     private Paint mBitmapPaint;
     private LinearGradient mShader;
@@ -65,7 +64,6 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
     }
 
     private void initView() {
-        mPaint = new Paint();
         mShadowPaint = new Paint();
         mBitmapPaint = new Paint();
         mDragHelper = ViewDragHelper.create(this, 1.0f, mCallback);
@@ -135,6 +133,9 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
 
         @Override
         public void onEdgeDragStarted(int edgeFlags, int pointerId) {
+            if (mActivities.size() < 2) {
+                return;
+            }
             mDragHelper.captureChildView(mContentView, pointerId);
         }
 
@@ -336,9 +337,18 @@ public class SwipeBack extends FrameLayout implements Application.ActivityLifecy
             //拿到Activity的contentView
             mContentView = getContentView(lastActivity);
             //把contentView添加到本容器
-            decorView.removeView(mContentView);
+            ViewGroup parent = (ViewGroup) mContentView.getParent();
+            if (parent != null) {
+                parent.removeView(mContentView);
+            } else {
+                decorView.removeView(mContentView);
+            }
             this.addView(mContentView);
             //把本容器添加到Activity的父容器
+            ViewGroup myParent = (ViewGroup) this.getParent();
+            if (myParent != null) {
+                myParent.removeView(this);
+            }
             decorView.addView(this, 0);
         }
     }
